@@ -34,8 +34,11 @@ const highlights = [
   ["03", "Corporate Focus", "Service thinking built around professional workplaces, employee experience and operational continuity."],
   ["04", "One Point of Contact", "Multiple facility support requirements coordinated through one accountable service partner."]
 ];
-
+import { useState } from "react";
 function useRevealAnimations() {
+
+ 
+
   useEffect(() => {
     const elements = document.querySelectorAll(".reveal");
     const observer = new IntersectionObserver(
@@ -66,17 +69,163 @@ const closeNavbar = () => {
   }
 };
 
+ const [formData, setFormData] = useState({
+    fullName: "",
+    company: "",
+    phone: "",
+    email: "",
+    service: "",
+    requirement: "",
+});
+
+const [errors, setErrors] = useState({});
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [successMessage, setSuccessMessage] = useState("");
+const [errorMessage, setErrorMessage] = useState("");
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
+
+        setErrors((prev) => ({
+            ...prev,
+            [name]: "",
+        }));
+
+        setSuccessMessage("");
+        setErrorMessage("");
+    };
+
+
+    const validateForm = () => {
+    const newErrors = {};
+
+    const name = formData.fullName.trim();
+    const phone = formData.phone.trim();
+
+    // Full Name - Required
+    if (!name) {
+        newErrors.fullName = "Full Name is required.";
+    } else if (name.length < 3) {
+        newErrors.fullName =
+            "Full Name must be at least 3 characters.";
+    }
+
+    // Phone - Required
+    if (!phone) {
+        newErrors.phone = "Phone number is required.";
+    } else if (!/^[6-9]\d{9}$/.test(phone)) {
+        newErrors.phone =
+            "Enter a valid 10-digit mobile number.";
+    }
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+};
+
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
+
+        setSuccessMessage("");
+        setErrorMessage("");
+
+
+        // Validate form
+        if (!validateForm()) {
+            return;
+        }
+
+
+        setIsSubmitting(true);
+
+
+        try {
+
+            const response = await fetch(
+                "https://asbfm.in/api/send-enquiry.php",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+
+                    body: JSON.stringify(formData),
+                }
+            );
+
+
+            const result = await response.json();
+
+
+            if (result.success) {
+
+                setSuccessMessage(
+                    "Thank you! Your enquiry has been sent successfully."
+                );
+
+
+                // Clear form
+                setFormData({
+                    fullName: "",
+                    company: "",
+                    phone: "",
+                    email: "",
+                    service: "",
+                    requirement: "",
+                });
+
+                setErrors({});
+
+            } else {
+
+                setErrorMessage(
+                    result.message ||
+                    "Unable to send your enquiry."
+                );
+            }
+
+        } catch (error) {
+
+            console.error("Enquiry Error:", error);
+
+            setErrorMessage(
+                "Unable to send your enquiry. Please try again."
+            );
+
+        } finally {
+
+            setIsSubmitting(false);
+
+        }
+    };
+
   return (
     <>
       <nav className="navbar navbar-expand-lg navbar-light fixed-top site-navbar">
         <div className="container">
-          <a className="navbar-brand d-flex align-items-center gap-2" href="#home" onClick={closeNavbar}>
-            <img src="/assets/asbfm-logo.jpg" alt="ASBFM logo" />
-            <span>
-              <strong>ASBFM Pvt. Ltd.</strong>
-              <small>Facility Management</small>
-            </span>
-          </a>
+          <a
+  className="navbar-brand d-flex align-items-center gap-2"
+  href="#home"
+  onClick={closeNavbar}
+>
+  <img src="/assets/asbfm-logo.png" alt="ASBFM logo" />
+
+  <span>
+    <strong>
+      A Sakum Brothers Facility Management Pvt. Ltd.
+    </strong>
+
+    <small>
+      Facility Management
+    </small>
+  </span>
+</a>
 
           <button
             className="navbar-toggler"
@@ -173,7 +322,7 @@ const closeNavbar = () => {
                 <span className="section-kicker">ABOUT ASBFM</span>
                 <h2 className="section-title">A reliable partner behind the workplace.</h2>
                 <p className="lead-text">
-                  ASBFM Facility Management Pvt. Ltd. brings essential workplace
+                  A Sakum Brothers Facility Management Pvt. Ltd. brings essential workplace
                   services together under one professional service framework.
                 </p>
                 <p>
@@ -285,21 +434,25 @@ const closeNavbar = () => {
                 </p>
 
                 <div className="contact-list mt-4">
-                  <a href="tel:+919000891957">
+                  <a href="tel:+919951440257">
                     <i className="bi bi-telephone"></i>
-                    <span><small>CALL US</small>9000891957 / 9000205455</span>
+                    <span><small>CALL US</small>9951440257</span>
+                  </a>
+                   <a href="tel:+919000205455">
+                    <i className="bi bi-telephone"></i>
+                    <span><small>CALL US</small> 9000205455</span>
                   </a>
                   <a href="mailto:info@asbfm.in">
                     <i className="bi bi-envelope"></i>
-                    <span><small>EMAIL</small>info@asbfm.in<br />sales@asbfm.in</span>
+                    <span><small>EMAIL</small>info@asbfm.in<br /> </span>
                   </a>
                   <div className="address">
                     <i className="bi bi-geo-alt"></i>
                     <span>
                       <small>HEAD OFFICE</small>
-                      2nd Floor, Melkiors Pride,<br />
-                      Hitex Road, Vinayaka Nagar,<br />
-                      Khanammet, Hi Tech City – 500084
+                      2-41/13PMR/5F, Melkiors Pride,<br />
+                      Hitex Road, Izzat Nagar,<br />
+                      Hyderabad – 500081
                     </span>
                   </div>
                 </div>
@@ -315,45 +468,229 @@ const closeNavbar = () => {
                     <i className="bi bi-chat-square-text"></i>
                   </div>
 
-                  <form onSubmit={(e) => e.preventDefault()}>
-                    <div className="row g-3">
-                      <div className="col-md-6">
-                        <label>Full Name</label>
-                        <input type="text" className="form-control" placeholder="Your name" />
-                      </div>
-                      <div className="col-md-6">
-                        <label>Company</label>
-                        <input type="text" className="form-control" placeholder="Company name" />
-                      </div>
-                      <div className="col-md-6">
-                        <label>Phone</label>
-                        <input type="tel" className="form-control" placeholder="+91" />
-                      </div>
-                      <div className="col-md-6">
-                        <label>Email</label>
-                        <input type="email" className="form-control" placeholder="you@company.com" />
-                      </div>
-                      <div className="col-12">
-                        <label>Service Required</label>
-                        <select className="form-select">
-                          <option>Select a service</option>
-                          {services.map((s) => <option key={s.title}>{s.title}</option>)}
-                        </select>
-                      </div>
-                      <div className="col-12">
-                        <label>Requirement</label>
-                        <textarea className="form-control" rows="4" placeholder="Tell us briefly about your requirement..."></textarea>
-                      </div>
-                      <div className="col-12">
-                        <button className="btn btn-brand px-4" type="submit">
-                          Send Enquiry <i className="bi bi-send ms-2"></i>
-                        </button>
-                        <small className="d-block mt-2 text-muted">
-                          Form submission can be connected to your Laravel / PHP API later.
-                        </small>
-                      </div>
-                    </div>
-                  </form>
+                <form onSubmit={handleSubmit} noValidate>
+
+    <div className="row g-3">
+
+        {/* Full Name */}
+        <div className="col-md-6">
+
+            <label className="form-label">
+                Full Name
+            </label>
+
+            <input
+                type="text"
+                name="fullName"
+                className={`form-control ${
+                    errors.fullName ? "is-invalid" : ""
+                }`}
+                placeholder="Your name"
+                value={formData.fullName}
+                onChange={handleChange}
+            />
+
+            {errors.fullName && (
+                <div className="invalid-feedback">
+                    {errors.fullName}
+                </div>
+            )}
+
+        </div>
+
+
+        {/* Company */}
+        <div className="col-md-6">
+
+            <label className="form-label">
+                Company
+            </label>
+
+            <input
+                type="text"
+                name="company"
+                className="form-control"
+                placeholder="Company name"
+                value={formData.company}
+                onChange={handleChange}
+            />
+
+        </div>
+
+
+        {/* Phone */}
+        <div className="col-md-6">
+
+            <label className="form-label">
+                Phone
+            </label>
+
+            <input
+                type="tel"
+                name="phone"
+                className={`form-control ${
+                    errors.phone ? "is-invalid" : ""
+                }`}
+                placeholder="+91 9876543210"
+                value={formData.phone}
+                onChange={handleChange}
+                maxLength="10"
+            />
+
+            {errors.phone && (
+                <div className="invalid-feedback">
+                    {errors.phone}
+                </div>
+            )}
+
+        </div>
+
+
+        {/* Email */}
+        <div className="col-md-6">
+
+            <label className="form-label">
+                Email
+            </label>
+
+            <input
+                type="email"
+                name="email"
+                className={`form-control ${
+                    errors.email ? "is-invalid" : ""
+                }`}
+                placeholder="you@company.com"
+                value={formData.email}
+                onChange={handleChange}
+            />
+
+            {errors.email && (
+                <div className="invalid-feedback">
+                    {errors.email}
+                </div>
+            )}
+
+        </div>
+
+
+        {/* Service */}
+        <div className="col-12">
+
+            <label className="form-label">
+                Service Required
+            </label>
+
+            <select
+                name="service"
+                className={`form-select ${
+                    errors.service ? "is-invalid" : ""
+                }`}
+                value={formData.service}
+                onChange={handleChange}
+            >
+
+                <option value="">
+                    Select a service
+                </option>
+
+                {services.map((s) => (
+                    <option
+                        key={s.title}
+                        value={s.title}
+                    >
+                        {s.title}
+                    </option>
+                ))}
+
+            </select>
+
+            {errors.service && (
+                <div className="invalid-feedback">
+                    {errors.service}
+                </div>
+            )}
+
+        </div>
+
+
+        {/* Requirement */}
+        <div className="col-12">
+
+            <label className="form-label">
+                Requirement
+            </label>
+
+            <textarea
+                name="requirement"
+                className={`form-control ${
+                    errors.requirement ? "is-invalid" : ""
+                }`}
+                rows="4"
+                placeholder="Tell us briefly about your requirement..."
+                value={formData.requirement}
+                onChange={handleChange}
+            />
+
+            {errors.requirement && (
+                <div className="invalid-feedback">
+                    {errors.requirement}
+                </div>
+            )}
+
+        </div>
+
+
+        {/* Messages */}
+        <div className="col-12">
+
+            {successMessage && (
+                <div className="alert alert-success">
+                    {successMessage}
+                </div>
+            )}
+
+            {errorMessage && (
+                <div className="alert alert-danger">
+                    {errorMessage}
+                </div>
+            )}
+
+        </div>
+
+
+        {/* Submit */}
+        <div className="col-12">
+
+            <button
+                className="btn btn-brand px-4"
+                type="submit"
+                disabled={isSubmitting}
+            >
+
+                {isSubmitting ? (
+                    <>
+                        <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                        />
+
+                        Sending...
+                    </>
+                ) : (
+                    <>
+                        Send Enquiry
+                        <i className="bi bi-send ms-2"></i>
+                    </>
+                )}
+
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
                 </div>
               </div>
             </div>
@@ -366,9 +703,9 @@ const closeNavbar = () => {
           <div className="row g-4 align-items-center">
             <div className="col-lg-6">
               <div className="footer-brand">
-                <img src="/assets/asbfm-logo.jpg" alt="ASBFM logo" />
+                <img src="/assets/asbfm-logo.png" alt="ASBFM logo" />
                 <div>
-                  <strong>ASBFM Facility Management Pvt. Ltd.</strong>
+                  <strong>A Sakum Brothers Facility Management Pvt. Ltd.</strong>
                   <span>People • Places • Better Tomorrow</span>
                 </div>
               </div>
@@ -380,7 +717,7 @@ const closeNavbar = () => {
                 <a href="#services">Services</a>
                 <a href="#contact">Contact</a>
               </div>
-              <small>© {new Date().getFullYear()} ASBFM Facility Management Pvt. Ltd. All rights reserved.</small>
+              <small>© {new Date().getFullYear()} A Sakum Brothers Facility Management Pvt. Ltd. All rights reserved.</small>
             </div>
           </div>
         </div>
@@ -389,7 +726,7 @@ const closeNavbar = () => {
       <div className="floating-actions">
         <a
           className="floating-whatsapp"
-          href="https://wa.me/919000891957?text=Hello%20ASBFM%2C%20I%20would%20like%20to%20know%20more%20about%20your%20facility%20management%20services."
+          href="https://wa.me/919000205455?text=Hello%20ASBFM%2C%20I%20would%20like%20to%20know%20more%20about%20your%20facility%20management%20services."
           target="_blank"
           rel="noreferrer"
           aria-label="Chat with ASBFM on WhatsApp"
@@ -397,7 +734,7 @@ const closeNavbar = () => {
           <i className="bi bi-whatsapp"></i>
         </a>
 
-        <a className="floating-call" href="tel:+919000891957" aria-label="Call ASBFM">
+        <a className="floating-call" href="tel:+919000205455" aria-label="Call ASBFM">
           <i className="bi bi-telephone-fill"></i>
         </a>
       </div>
